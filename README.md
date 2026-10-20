@@ -39,6 +39,12 @@ DingTalk group-robot plugin cannot do, because a group robot webhook can only po
 - Robot direct message: ≤ 20 userIds per call.
 - Access tokens are cached in-process until 5 minutes before expiry.
 
+### Field-tested
+
+Dify Enterprise 3.12.1 (= Community 1.16.1): all three tools verified. Wire the lookup tool's
+`user_ids` output straight into the send tools' `user_ids` parameter - outputs are pure
+comma-separated userids by design.
+
 ### Development
 
 ```bash
