@@ -108,6 +108,15 @@ def split_ids(value: str) -> list[str]:
     return [v.strip() for v in (value or "").split(",") if v.strip()]
 
 
+def to_bool(value: Any) -> bool:
+    """Tolerate booleans arriving as strings ("True"/"false"/"1") when wired from variables."""
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    return str(value).strip().lower() in ("1", "true", "yes", "on")
+
+
 def _default_title(title: str, content: str) -> str:
     if title and title.strip():
         return title.strip()

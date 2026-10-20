@@ -59,5 +59,20 @@ class ContentSizeTest(unittest.TestCase):
         check_content_size("字" * 100)
 
 
+class ToBoolTest(unittest.TestCase):
+    def test_string_bools(self):
+        from _utils.dingtalk_client import to_bool
+
+        self.assertTrue(to_bool(True))
+        self.assertTrue(to_bool("True"))
+        self.assertTrue(to_bool("true"))
+        self.assertTrue(to_bool("1"))
+        self.assertFalse(to_bool(False))
+        self.assertFalse(to_bool("False"))
+        self.assertFalse(to_bool("0"))
+        self.assertFalse(to_bool(None))
+        self.assertFalse(to_bool(""))
+
+
 if __name__ == "__main__":
     unittest.main()

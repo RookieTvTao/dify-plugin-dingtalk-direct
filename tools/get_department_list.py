@@ -4,7 +4,7 @@ from typing import Any
 from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
 
-from _utils.dingtalk_client import DingTalkError, get_access_token, list_sub_departments
+from _utils.dingtalk_client import DingTalkError, get_access_token, list_sub_departments, to_bool
 
 MAX_DEPARTMENTS = 200
 
@@ -13,10 +13,10 @@ class GetDepartmentListTool(Tool):
     def _invoke(self, tool_parameters: dict[str, Any]) -> Generator[ToolInvokeMessage]:
         dept_id_raw = (tool_parameters.get("dept_id") or "1").strip() or "1"
         if not dept_id_raw.isdigit():
-            yield self.create_text_message("错误：dept_id 不是数字（根部门为 1）。")
+            yield self.create_text_message("错误：dept_id 不是数字（根部门为 1，本工具一次查一个部门的子部门）。")
             return
         dept_id = int(dept_id_raw)
-        recursive = bool(tool_parameters.get("recursive"))
+        recursive = to_bool(tool_parameters.get("recursive"))
 
         try:
             token = get_access_token(self.runtime.credentials["app_key"], self.runtime.credentials["app_secret"])

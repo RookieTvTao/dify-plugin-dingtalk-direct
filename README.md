@@ -48,8 +48,9 @@ only (declared in `manifest.yaml` → `network.domains`).
 All lookup tools share the same convention: `text` and the `user_ids` (or `dept_ids`)
 output variables are pure comma-separated ids, ready to be wired straight into the send
 tools' `user_ids` parameter; names, mobiles and failure reasons live in the `json` output.
-`Get Department Users` can walk sub-departments recursively (capped at 100 departments /
-5000 users) and filter members by name substring.
+`Get Department Users` accepts comma-separated dept ids (wire the `dept_ids` output of
+`List Departments` straight in), can walk sub-departments recursively (capped at 100
+departments / 5000 users) and filter members by name substring.
 
 ## Field-tested
 

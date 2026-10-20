@@ -14,12 +14,12 @@ parameters:
     type: string
     required: true
     label:
-      en_US: Department ID
+      en_US: Department IDs
       zh_Hans: 部门 ID
     human_description:
-      en_US: 'Department id; the root department is 1. Use the "List Departments" tool to find ids.'
-      zh_Hans: '部门 id，根部门为 1。可用「获取部门列表」工具查询。'
-    llm_description: The DingTalk department id to list members of (root is 1).
+      en_US: 'One department id or comma-separated ids; the root department is 1. Wire the "List Departments" tool''s dept_ids output here directly.'
+      zh_Hans: '单个部门 id 或半角逗号分隔多个（根部门为 1）；可直接连「获取部门列表」的 dept_ids 输出。'
+    llm_description: The DingTalk department id(s) to list members of (root is 1; comma-separated for multiple).
     form: llm
   - name: include_sub_departments
     type: boolean
