@@ -1,0 +1,33 @@
+version: 0.0.4
+type: plugin
+author: rookietvtao
+name: dingtalk-direct
+repo: https://github.com/RookieTvTao/dify-plugin-dingtalk-direct
+contact: 2376703524@qq.com
+label:
+  en_US: DingTalk Direct Message
+  zh_Hans: 钉钉个人消息
+description:
+  en_US: Send DingTalk messages to individuals (not group robots) from workflows and agents - enterprise work notifications and robot one-on-one chat, plus phone-number-to-userid lookup.
+  zh_Hans: 在工作流/智能体中给钉钉个人发消息（区别于群机器人）：企业内部应用工作通知、机器人单聊私发，另附手机号换 userid 工具。
+icon: icon.svg
+resource:
+  memory: 134217728
+  permission:
+    tool:
+      enabled: true
+plugins:
+  tools:
+    - provider/dingtalk_direct.yaml
+meta:
+  version: 0.0.4
+  arch:
+    - amd64
+    - arm64
+  runner:
+    language: python
+    version: "3.12"
+    entrypoint: main
+  minimum_dify_version: "1.16.0"
+created_at: "2026-10-20T00:00:00.000000000Z"
+privacy: ./PRIVACY.md

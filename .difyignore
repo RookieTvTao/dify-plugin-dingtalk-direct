@@ -1,0 +1,12 @@
+.git/
+.github/
+.vscode/
+tests/
+__pycache__/
+.venv/
+.gitignore
+.gitattributes
+.env
+.env.example
+README_CN.md
+*.difypkg

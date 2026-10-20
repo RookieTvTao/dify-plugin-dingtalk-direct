@@ -1,0 +1,68 @@
+identity:
+  author: rookietvtao
+  name: send_work_notification
+  label:
+    en_US: Send Work Notification
+    zh_Hans: 发送工作通知
+description:
+  human:
+    en_US: Push a DingTalk work notification to specific users. The message lands in each recipient's "工作通知" conversation. Requires an enterprise internal app AgentId.
+    zh_Hans: 给指定人员推送钉钉工作通知，消息进入每个接收者的「工作通知」会话。需在企业内部应用凭据中配置 AgentId。
+  llm: Send a DingTalk work notification to given userids, e.g. approval results, report digests or alerts to individuals.
+parameters:
+  - name: user_ids
+    type: string
+    required: true
+    label:
+      en_US: Recipient userids
+      zh_Hans: 接收人 userid
+    human_description:
+      en_US: 'Comma-separated DingTalk userids, up to 100. Lookup userids with the "Get Userid by Mobile" tool.'
+      zh_Hans: '半角逗号分隔的 userid 列表，最多 100 个。可用「手机号换 userid」工具查询。'
+    llm_description: Comma-separated DingTalk userids of the recipients (max 100).
+    form: llm
+  - name: content
+    type: string
+    required: true
+    label:
+      en_US: Content
+      zh_Hans: 消息内容
+    human_description:
+      en_US: Message body. Text or Markdown depending on the type; max 2048 bytes.
+      zh_Hans: 消息正文，按所选类型填写纯文本或 Markdown，最长 2048 字节。
+    llm_description: The message body to send.
+    form: llm
+  - name: message_type
+    type: select
+    required: false
+    default: text
+    options:
+      - value: text
+        label:
+          en_US: Text
+          zh_Hans: 文本
+      - value: markdown
+        label:
+          en_US: Markdown
+          zh_Hans: Markdown
+    label:
+      en_US: Message type
+      zh_Hans: 消息类型
+    human_description:
+      en_US: Text or Markdown.
+      zh_Hans: 文本或 Markdown。
+    form: form
+  - name: title
+    type: string
+    required: false
+    label:
+      en_US: Title (Markdown only)
+      zh_Hans: 标题（仅 Markdown）
+    human_description:
+      en_US: First-screen title of a Markdown message. Ignored for text. Defaults to the first line of the content.
+      zh_Hans: Markdown 消息的首屏标题，文本类型忽略；留空时取内容第一行。
+    llm_description: Optional title, used only when message type is markdown.
+    form: llm
+extra:
+  python:
+    source: tools/send_work_notification.py

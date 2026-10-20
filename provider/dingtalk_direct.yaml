@@ -1,0 +1,69 @@
+identity:
+  author: rookietvtao
+  name: dingtalk_direct
+  label:
+    en_US: DingTalk Direct Message
+    zh_Hans: 钉钉个人消息
+  description:
+    en_US: Send DingTalk messages directly to individuals - enterprise work notifications and robot one-on-one chat. Includes a phone-number-to-userid lookup tool.
+    zh_Hans: 给钉钉个人发消息：企业内部应用工作通知 + 机器人单聊私发，附手机号换 userid 工具。区别于只能发群的钉钉群机器人插件。
+  icon: icon.svg
+  tags:
+    - social
+    - productivity
+tools:
+  - tools/send_work_notification.yaml
+  - tools/send_robot_message.yaml
+  - tools/get_userid_by_mobile.yaml
+extra:
+  python:
+    source: provider/dingtalk_direct.py
+credentials_for_provider:
+  app_key:
+    type: secret-input
+    required: true
+    label:
+      en_US: AppKey (Client ID)
+      zh_Hans: AppKey（Client ID）
+    placeholder:
+      en_US: AppKey of your DingTalk enterprise internal app
+      zh_Hans: 钉钉企业内部应用的 AppKey
+    help:
+      en_US: 'DingTalk Open Platform (open-dev.dingtalk.com) -> Applications -> your internal app -> Credentials. Needed by every tool.'
+      zh_Hans: '钉钉开发者后台（open-dev.dingtalk.com）-> 应用 -> 你的企业内部应用 -> 凭证与基础信息。所有工具都需要。'
+  app_secret:
+    type: secret-input
+    required: true
+    label:
+      en_US: AppSecret (Client Secret)
+      zh_Hans: AppSecret（Client Secret）
+    placeholder:
+      en_US: AppSecret of your DingTalk enterprise internal app
+      zh_Hans: 钉钉企业内部应用的 AppSecret
+    help:
+      en_US: 'Found next to AppKey on the app credentials page.'
+      zh_Hans: '与 AppKey 同在应用「凭证与基础信息」页面。'
+  agent_id:
+    type: text-input
+    required: false
+    label:
+      en_US: AgentId (for work notification)
+      zh_Hans: AgentId（工作通知用）
+    placeholder:
+      en_US: e.g. 1234567890
+      zh_Hans: '例如：1234567890'
+    help:
+      en_US: 'Required by "Send Work Notification". Shown on the app credentials page of an internal app.'
+      zh_Hans: '「发送工作通知」工具必填。企业内部应用的「凭证与基础信息」页面可见。'
+  robot_code:
+    type: text-input
+    required: false
+    label:
+      en_US: RobotCode (for robot direct message)
+      zh_Hans: RobotCode（机器人单聊用）
+    placeholder:
+      en_US: The robot's AppKey, e.g. dingxxxxxx
+      zh_Hans: '机器人的 AppKey，例如 dingxxxxxx'
+    help:
+      en_US: 'Required by "Send Robot Message". It is the AppKey of the app''s robot (企业内部开发-机器人).'
+      zh_Hans: '「机器人单聊」工具必填。即应用所配机器人的 AppKey（企业内部开发-机器人），不是群机器人。'

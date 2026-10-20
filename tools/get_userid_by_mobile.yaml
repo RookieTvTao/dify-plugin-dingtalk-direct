@@ -1,0 +1,38 @@
+identity:
+  author: rookietvtao
+  name: get_userid_by_mobile
+  label:
+    en_US: Get Userid by Mobile
+    zh_Hans: 手机号换 userid
+description:
+  human:
+    en_US: 'Look up DingTalk userids by mobile numbers registered in the enterprise address book. The text and user_ids outputs are pure comma-separated userids, ready to wire into the send tools; the mobile->userid mapping is in the json output.'
+    zh_Hans: 用企业通讯录中登记的手机号查询 userid。text 和 user_ids 输出是纯净的逗号分隔 userid，可直接连到发送工具的 user_ids；手机号->userid 对应关系见 json 输出。需应用开通通讯录个人信息读权限。
+  llm: Resolve one or more DingTalk mobile numbers to userids, e.g. before sending direct messages.
+parameters:
+  - name: mobiles
+    type: string
+    required: true
+    label:
+      en_US: Mobile numbers
+      zh_Hans: 手机号
+    human_description:
+      en_US: 'Comma-separated mobile numbers registered in the enterprise address book.'
+      zh_Hans: '半角逗号分隔的手机号，须与企业通讯录中登记的一致。'
+    llm_description: Comma-separated mobile numbers to resolve.
+    form: llm
+output_schema:
+  output:
+    - name: user_ids
+      type: string
+      description:
+        en_US: 'Pure comma-separated userids of all successfully resolved mobiles; empty when none succeed.'
+        zh_Hans: 查询成功的纯净 userid（半角逗号分隔），可直接作为发送工具的 user_ids；全部失败时为空。
+    - name: failed
+      type: string
+      description:
+        en_US: 'Comma-separated mobile numbers that failed to resolve; empty when all succeed.'
+        zh_Hans: 查询失败的手机号（半角逗号分隔）；全部成功时为空。
+extra:
+  python:
+    source: tools/get_userid_by_mobile.py

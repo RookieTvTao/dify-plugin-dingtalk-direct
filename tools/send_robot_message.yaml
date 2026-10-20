@@ -1,0 +1,68 @@
+identity:
+  author: rookietvtao
+  name: send_robot_message
+  label:
+    en_US: Send Robot Message
+    zh_Hans: 机器人单聊私发
+description:
+  human:
+    en_US: An enterprise internal robot sends a one-on-one chat message to specific users. Requires the app's robot (RobotCode) with one-on-one chat enabled.
+    zh_Hans: 企业内部机器人给指定人员发单聊消息（像机器人私聊）。需在凭据中配置机器人的 RobotCode，且机器人已开启单聊。
+  llm: Send a DingTalk one-on-one robot message to given userids, e.g. a bot assistant privately replying or notifying individuals.
+parameters:
+  - name: user_ids
+    type: string
+    required: true
+    label:
+      en_US: Recipient userids
+      zh_Hans: 接收人 userid
+    human_description:
+      en_US: 'Comma-separated DingTalk userids, up to 20 per call. Lookup userids with the "Get Userid by Mobile" tool.'
+      zh_Hans: '半角逗号分隔的 userid 列表，单次最多 20 个。可用「手机号换 userid」工具查询。'
+    llm_description: Comma-separated DingTalk userids of the recipients (max 20).
+    form: llm
+  - name: content
+    type: string
+    required: true
+    label:
+      en_US: Content
+      zh_Hans: 消息内容
+    human_description:
+      en_US: Message body. Text or Markdown depending on the type.
+      zh_Hans: 消息正文，按所选类型填写纯文本或 Markdown。
+    llm_description: The message body to send.
+    form: llm
+  - name: message_type
+    type: select
+    required: false
+    default: text
+    options:
+      - value: text
+        label:
+          en_US: Text
+          zh_Hans: 文本
+      - value: markdown
+        label:
+          en_US: Markdown
+          zh_Hans: Markdown
+    label:
+      en_US: Message type
+      zh_Hans: 消息类型
+    human_description:
+      en_US: Text or Markdown.
+      zh_Hans: 文本或 Markdown。
+    form: form
+  - name: title
+    type: string
+    required: false
+    label:
+      en_US: Title (Markdown only)
+      zh_Hans: 标题（仅 Markdown）
+    human_description:
+      en_US: Title of a Markdown message. Ignored for text. Defaults to the first line of the content.
+      zh_Hans: Markdown 消息的标题，文本类型忽略；留空时取内容第一行。
+    llm_description: Optional title, used only when message type is markdown.
+    form: llm
+extra:
+  python:
+    source: tools/send_robot_message.py
