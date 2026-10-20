@@ -135,3 +135,40 @@ def check_content_size(content: str) -> None:
     size = len(content.encode("utf-8"))
     if size > CONTENT_LIMIT_BYTES:
         raise DingTalkError(f"消息内容 {size} 字节，超过工作通知 {CONTENT_LIMIT_BYTES} 字节上限")
+
+
+USER_LIST_PAGE_SIZE = 100
+
+
+def list_dept_users(token: str, dept_id: int) -> list[dict]:
+    """All members of one department via /topapi/v2/user/list (cursor-paginated)."""
+    users: list[dict] = []
+    cursor = 0
+    while True:
+        data = post_old_api(
+            "/topapi/v2/user/list",
+            token,
+            {
+                "dept_id": dept_id,
+                "cursor": cursor,
+                "size": USER_LIST_PAGE_SIZE,
+                "contain_access_limit": False,
+                "language": "zh_CN",
+            },
+        )
+        result = data.get("result") or {}
+        users.extend(result.get("list") or [])
+        if not result.get("has_more"):
+            break
+        cursor = result.get("next_cursor")
+        if cursor is None:
+            break
+    return users
+
+
+def list_sub_departments(token: str, dept_id: int) -> list[dict]:
+    """Direct child departments via /topapi/v2/department/listsub."""
+    data = post_old_api(
+        "/topapi/v2/department/listsub", token, {"dept_id": dept_id, "language": "zh_CN"}
+    )
+    return data.get("result") or []

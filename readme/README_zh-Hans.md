@@ -3,16 +3,18 @@
 给钉钉**个人**发消息的 Dify 插件。官方钉钉插件只封装了群机器人 Webhook，而 Webhook 只能发群，
 本插件补上"发给个人"的能力，适合审批提醒、报告推送、告警私发等场景。
 
-## 三个工具
+## 五个工具
 
 | 工具 | 通道 | 前置条件 |
 |---|---|---|
 | 发送工作通知 | 接收者的「工作通知」会话 | 企业内部应用 AppKey/AppSecret + AgentId（消息通知权限默认已开通） |
 | 机器人单聊私发 | 机器人与个人的单聊 | 应用配置机器人并开启单聊，凭据填 RobotCode（机器人的 AppKey） |
-| 手机号换 userid | 查询工具 | 应用开通「根据手机号获取成员基本信息」权限（qyapi_get_member_by_mobile），手机号须与通讯录一致 |
+| 手机号换 userid | 查询 | 「根据手机号获取成员基本信息」权限（qyapi_get_member_by_mobile） |
+| 部门成员 userid | 查询 | 部门成员读权限（qyapi_get_department_member），可递归子部门、按姓名过滤 |
+| 获取部门列表 | 查询 | 部门信息读权限（qyapi_get_department_list），用于找 dept_id |
 
-查询工具的 `user_ids` / `text` 输出是**纯净的逗号分隔 userid**，直接连到发送节点的
-`user_ids` 即可；手机号与 userid 的对应关系、失败原因在 `json` 输出里。
+查询类工具的 `user_ids`（或 `dept_ids`）/ `text` 输出都是**纯净的逗号分隔 id**，直接连到
+发送节点的 `user_ids` 即可；姓名、手机号、失败原因等明细在 `json` 输出里。
 
 ## 授权配置
 

@@ -1,0 +1,50 @@
+identity:
+  author: rookietvtao
+  name: get_department_list
+  label:
+    en_US: List Departments
+    zh_Hans: 获取部门列表
+description:
+  human:
+    en_US: 'List child departments of a DingTalk department as pure comma-separated department ids (optionally the whole subtree). Use it to find dept_id values for "Get Department Users"; names live in the json output.'
+    zh_Hans: 获取部门的子部门列表（可选整棵子树）。dept_ids/text 输出为纯净逗号分隔部门 id，用于给「部门成员 userid」工具供参；部门名称见 json 输出。需应用开通部门信息读权限。
+  llm: List DingTalk sub-department ids under a department, e.g. to locate a team's dept_id.
+parameters:
+  - name: dept_id
+    type: string
+    required: false
+    default: "1"
+    label:
+      en_US: Department ID
+      zh_Hans: 部门 ID
+    human_description:
+      en_US: 'Parent department id; defaults to 1 (the root department).'
+      zh_Hans: 父部门 id，默认 1（根部门，即全公司一级子部门）。
+    llm_description: The parent department id (defaults to 1, the root).
+    form: llm
+  - name: recursive
+    type: boolean
+    required: false
+    default: false
+    label:
+      en_US: Recursive
+      zh_Hans: 递归整棵树
+    human_description:
+      en_US: 'Walk the whole sub-tree (capped at 200 departments).'
+      zh_Hans: 递归返回整棵子部门树（上限 200 个部门）。
+    form: form
+output_schema:
+  output:
+    - name: dept_ids
+      type: string
+      description:
+        en_US: 'Pure comma-separated department ids; empty when there are no sub-departments.'
+        zh_Hans: 纯净的逗号分隔部门 id；无子部门时为空。
+    - name: count
+      type: number
+      description:
+        en_US: Number of departments returned.
+        zh_Hans: 返回的部门数量。
+extra:
+  python:
+    source: tools/get_department_list.py

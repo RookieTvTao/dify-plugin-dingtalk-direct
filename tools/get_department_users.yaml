@@ -1,0 +1,60 @@
+identity:
+  author: rookietvtao
+  name: get_department_users
+  label:
+    en_US: Get Department Users
+    zh_Hans: 部门成员 userid
+description:
+  human:
+    en_US: 'List all members of a DingTalk department as pure comma-separated userids (optionally recursive into sub-departments, optionally filtered by name). The user_ids/text outputs wire straight into the send tools; names and mobiles are in the json output.'
+    zh_Hans: 获取部门全部成员的 userid（可选递归子部门、按姓名过滤）。user_ids/text 输出为纯净逗号分隔 userid，可直接连到发送工具；姓名、手机号明细见 json 输出。需应用开通部门成员读权限。
+  llm: Resolve DingTalk department member(s) to userids, e.g. before sending direct messages to a team or a person by name.
+parameters:
+  - name: dept_id
+    type: string
+    required: true
+    label:
+      en_US: Department ID
+      zh_Hans: 部门 ID
+    human_description:
+      en_US: 'Department id; the root department is 1. Use the "List Departments" tool to find ids.'
+      zh_Hans: '部门 id，根部门为 1。可用「获取部门列表」工具查询。'
+    llm_description: The DingTalk department id to list members of (root is 1).
+    form: llm
+  - name: include_sub_departments
+    type: boolean
+    required: false
+    default: false
+    label:
+      en_US: Include sub-departments
+      zh_Hans: 递归子部门
+    human_description:
+      en_US: 'Also walk all sub-departments recursively (capped at 100 departments / 5000 users).'
+      zh_Hans: 递归包含所有子部门成员（上限 100 个部门 / 5000 人，超出请分部门查询）。
+    form: form
+  - name: name_filter
+    type: string
+    required: false
+    label:
+      en_US: Name filter
+      zh_Hans: 姓名过滤
+    human_description:
+      en_US: 'Optional substring match on member names, e.g. to pick one person out of a department.'
+      zh_Hans: 可选，按姓名包含匹配过滤成员，用于从部门里挑出某个人。
+    llm_description: Optional name substring to filter members by.
+    form: llm
+output_schema:
+  output:
+    - name: user_ids
+      type: string
+      description:
+        en_US: 'Pure comma-separated userids of the (filtered) members; empty when none match.'
+        zh_Hans: （过滤后的）成员纯净 userid，逗号分隔；无匹配时为空。
+    - name: count
+      type: number
+      description:
+        en_US: Number of userids returned.
+        zh_Hans: 返回的 userid 数量。
+extra:
+  python:
+    source: tools/get_department_users.py

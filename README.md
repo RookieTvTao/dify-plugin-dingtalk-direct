@@ -13,6 +13,8 @@ DingTalk group-robot plugin cannot do, because a group robot webhook can only po
 | Send Work Notification | Work notification conversation | Enterprise internal app: AppKey/AppSecret + AgentId |
 | Send Robot Message | Robot one-on-one chat | The app's robot (RobotCode) with one-on-one chat enabled |
 | Get Userid by Mobile | - (lookup) | Address-book read permission `qyapi_get_member_by_mobile` |
+| Get Department Users | - (lookup) | Address-book read permission `qyapi_get_department_member` |
+| List Departments | - (lookup) | Address-book read permission `qyapi_get_department_list` |
 
 ## Setup
 
@@ -43,9 +45,11 @@ only (declared in `manifest.yaml` → `network.domains`).
 
 ### Output wiring
 
-The lookup tool's `text` and `user_ids` outputs are pure comma-separated userids, ready to be
-wired straight into the send tools' `user_ids` parameter; the mobile→userid mapping and failure
-reasons are exposed in the `json` output.
+All lookup tools share the same convention: `text` and the `user_ids` (or `dept_ids`)
+output variables are pure comma-separated ids, ready to be wired straight into the send
+tools' `user_ids` parameter; names, mobiles and failure reasons live in the `json` output.
+`Get Department Users` can walk sub-departments recursively (capped at 100 departments /
+5000 users) and filter members by name substring.
 
 ## Field-tested
 
