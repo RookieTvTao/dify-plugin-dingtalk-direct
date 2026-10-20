@@ -8,5 +8,4 @@ __pycache__/
 .gitattributes
 .env
 .env.example
-README_CN.md
 *.difypkg

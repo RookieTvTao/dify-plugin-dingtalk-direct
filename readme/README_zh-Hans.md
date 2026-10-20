@@ -9,7 +9,10 @@
 |---|---|---|
 | 发送工作通知 | 接收者的「工作通知」会话 | 企业内部应用 AppKey/AppSecret + AgentId（消息通知权限默认已开通） |
 | 机器人单聊私发 | 机器人与个人的单聊 | 应用配置机器人并开启单聊，凭据填 RobotCode（机器人的 AppKey） |
-| 手机号换 userid | 查询工具 | 应用开通「通讯录个人信息读权限」，手机号须与通讯录一致 |
+| 手机号换 userid | 查询工具 | 应用开通「根据手机号获取成员基本信息」权限（qyapi_get_member_by_mobile），手机号须与通讯录一致 |
+
+查询工具的 `user_ids` / `text` 输出是**纯净的逗号分隔 userid**，直接连到发送节点的
+`user_ids` 即可；手机号与 userid 的对应关系、失败原因在 `json` 输出里。
 
 ## 授权配置
 
@@ -33,9 +36,6 @@
 2. 「发送工作通知」或「机器人单聊私发」节点：userid 列表 + 内容（支持文本 / Markdown），
    直接引用上游 LLM 节点的输出作为消息内容。
 
-查询工具的 `user_ids` / `text` 输出是**纯净的逗号分隔 userid**，直接连到发送节点的
-`user_ids` 即可；手机号与 userid 的对应关系、失败原因在 `json` 输出里。
-
 社区版 1.16.1+ 与企业版通用（已在企业版 3.12.1 实测三工具通过）。
 
 ## 本地开发
@@ -47,4 +47,4 @@ python -m unittest discover tests
 dify plugin package ./dify-plugin-dingtalk-direct
 ```
 
-MIT License。
+MIT License。English documentation: [README.md](../README.md)

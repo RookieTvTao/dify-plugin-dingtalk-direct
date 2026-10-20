@@ -1,35 +1,37 @@
-# DingTalk Direct Message | 钉钉个人消息
+# DingTalk Direct Message
 
 A Dify plugin that sends DingTalk messages **to individuals** — something the official
 DingTalk group-robot plugin cannot do, because a group robot webhook can only post into a group.
 
-- [English](#english)
-- [中文说明](README_CN.md)
+- Source repository: <https://github.com/RookieTvTao/dify-plugin-dingtalk-direct>
+- Chinese documentation: [readme/README_zh-Hans.md](readme/README_zh-Hans.md)
 
-## English
-
-### Tools
+## Tools
 
 | Tool | Channel | Requirements |
 |---|---|---|
-| Send Work Notification | Work notification conversation ("工作通知") | Enterprise internal app: AppKey/AppSecret + AgentId |
-| Send Robot Message | Robot one-on-one chat | The app's robot (RobotCode) with one-on-one enabled |
-| Get Userid by Mobile | - (lookup) | Address-book read permission |
+| Send Work Notification | Work notification conversation | Enterprise internal app: AppKey/AppSecret + AgentId |
+| Send Robot Message | Robot one-on-one chat | The app's robot (RobotCode) with one-on-one chat enabled |
+| Get Userid by Mobile | - (lookup) | Address-book read permission `qyapi_get_member_by_mobile` |
 
-### Setup
+## Setup
 
-1. On [DingTalk Open Platform](https://open-dev.dingtalk.com) create an **enterprise internal app**
-   (企业内部应用 / H5 micro-app). Copy its `AppKey`, `AppSecret` and `AgentId` from the
-   credentials page.
+1. On the DingTalk Open Platform (open-dev.dingtalk.com) create an **enterprise internal app**.
+   Copy its `AppKey`, `AppSecret` and `AgentId` from the credentials page.
 2. For **work notifications**: the message-notification permission is granted to internal apps by
    default — no extra application needed.
 3. For **robot one-on-one messages**: add the robot capability to the same app, enable
-   one-on-one chat (单聊), and grant the "企业内机器人发送消息" permission. The `RobotCode` is
-   simply the robot's AppKey.
-4. For **mobile → userid lookup**: grant the address-book personal-info read permission
-   (通讯录个人信息读权限) to the app. The mobile number must match the enterprise address book.
-5. In Dify: install the plugin, then authorize with AppKey/AppSecret (AgentId and RobotCode
-   optional, required by the respective tools).
+   one-on-one chat, and grant the "robot sends messages inside the enterprise" permission.
+   The `RobotCode` is simply the robot's AppKey.
+4. For **mobile → userid lookup**: grant the address-book permission above. The mobile number
+   must match the enterprise address book.
+
+### Connection requirements
+
+Authorize the plugin once with `AppKey` / `AppSecret`; `AgentId` (work notifications) and
+`RobotCode` (robot direct messages) are optional provider-level fields required by the
+respective tools. All outbound traffic goes to `api.dingtalk.com` and `oapi.dingtalk.com`
+only (declared in `manifest.yaml` → `network.domains`).
 
 ### Rate limits (DingTalk side)
 
@@ -39,23 +41,25 @@ DingTalk group-robot plugin cannot do, because a group robot webhook can only po
 - Robot direct message: ≤ 20 userIds per call.
 - Access tokens are cached in-process until 5 minutes before expiry.
 
-### Field-tested
+### Output wiring
 
-Dify Enterprise 3.12.1 (= Community 1.16.1): all three tools verified. Wire the lookup tool's
-`user_ids` output straight into the send tools' `user_ids` parameter - outputs are pure
-comma-separated userids by design.
+The lookup tool's `text` and `user_ids` outputs are pure comma-separated userids, ready to be
+wired straight into the send tools' `user_ids` parameter; the mobile→userid mapping and failure
+reasons are exposed in the `json` output.
 
-### Development
+## Field-tested
+
+Dify Enterprise 3.12.1 (= Community 1.16.1): all three tools verified end-to-end with real
+enterprise credentials.
+
+## Development
 
 ```bash
 pip install -r requirements.txt
 python -m unittest discover tests
-# package (produces dingtalk-direct.difypkg)
+# package (produces a .difypkg)
 dify plugin package ./dify-plugin-dingtalk-direct
 ```
 
-## Related
-
-- Group-robot sending is covered by the official `langgenius/dingtalk` plugin; this plugin
-  complements it for direct, person-to-person delivery.
-- MIT License.
+Group-robot sending is covered by the official `langgenius/dingtalk` plugin; this plugin
+complements it for direct, person-to-person delivery. MIT License — see [LICENSE](LICENSE).

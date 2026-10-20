@@ -1,4 +1,4 @@
-version: 0.0.4
+version: 0.0.5
 type: plugin
 author: rookietvtao
 name: dingtalk-direct
@@ -20,7 +20,7 @@ plugins:
   tools:
     - provider/dingtalk_direct.yaml
 meta:
-  version: 0.0.4
+  version: 0.0.5
   arch:
     - amd64
     - arm64
@@ -31,3 +31,7 @@ meta:
   minimum_dify_version: "1.16.0"
 created_at: "2026-10-20T00:00:00.000000000Z"
 privacy: ./PRIVACY.md
+network:
+  domains:
+    - api.dingtalk.com
+    - oapi.dingtalk.com
