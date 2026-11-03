@@ -21,6 +21,17 @@ parameters:
       zh_Hans: 员工工号（精确匹配），注意不是钉钉 userid。
     llm_description: The exact employee job number to look up.
     form: llm
+  - name: dept_name_path
+    type: string
+    required: false
+    label:
+      en_US: Department name path
+      zh_Hans: 部门名称路径
+    human_description:
+      en_US: 'Optional human-friendly path like "Company/Subsidiary/Department" (separator / or 、) to scope the search; overrides dept_id.'
+      zh_Hans: '可选，如 示例集团/华东公司/信息技术部（用 / 或 、分隔逐级）。只在该子树内找，快且不受集团规模影响；填了本参数就不用填 dept_id。'
+    llm_description: Optional department name path like "Company/Department" scoping the search; overrides dept_id.
+    form: llm
   - name: dept_id
     type: string
     required: false

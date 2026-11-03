@@ -10,15 +10,26 @@ description:
     zh_Hans: 获取部门全部成员的 userid（可选递归子部门、按姓名过滤）。user_ids/text 输出为纯净逗号分隔 userid，可直接连到发送工具；姓名、手机号明细见 json 输出。需应用开通部门成员读权限。
   llm: Resolve DingTalk department member(s) to userids, e.g. before sending direct messages to a team or a person by name.
 parameters:
+  - name: dept_name_path
+    type: string
+    required: false
+    label:
+      en_US: Department name path
+      zh_Hans: 部门名称路径
+    human_description:
+      en_US: 'Optional human-friendly path like "Company/Subsidiary/Department" (separator / or 、). Resolved level by level into a dept id; when given, dept_id is ignored.'
+      zh_Hans: '可选，直接填名称路径，如 示例集团/华东公司/信息技术部（用 / 或 、分隔逐级）。插件自动逐级解析成部门 id，填了本参数就不用填 dept_id。'
+    llm_description: Optional department name path like "Company/Department"; overrides dept_id.
+    form: llm
   - name: dept_id
     type: string
-    required: true
+    required: false
     label:
       en_US: Department IDs
       zh_Hans: 部门 ID
     human_description:
-      en_US: 'One department id or comma-separated ids; the root department is 1. Wire the "List Departments" tool''s dept_ids output here directly.'
-      zh_Hans: '单个部门 id 或半角逗号分隔多个（根部门为 1）；可直接连「获取部门列表」的 dept_ids 输出。'
+      en_US: 'One department id or comma-separated ids; the root department is 1. Ignored when dept_name_path is given.'
+      zh_Hans: '单个部门 id 或半角逗号分隔多个（根部门为 1）；填了部门名称路径时本参数忽略。大集团建议只填一家子公司，别把全部子公司 id 一起传（等于全集团遍历）。'
     llm_description: The DingTalk department id(s) to list members of (root is 1; comma-separated for multiple).
     form: llm
   - name: include_sub_departments
