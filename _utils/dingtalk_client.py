@@ -5,6 +5,8 @@ DingTalk has two API styles:
 - api.dingtalk.com: errors use HTTP status codes plus a body code/message.
 """
 
+from __future__ import annotations
+
 import concurrent.futures
 import json
 import re
