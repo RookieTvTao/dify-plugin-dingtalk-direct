@@ -1,3 +1,4 @@
+from collections import deque
 from collections.abc import Generator
 from typing import Any
 
@@ -6,7 +7,7 @@ from dify_plugin.entities.tool import ToolInvokeMessage
 
 from _utils.dingtalk_client import DingTalkError, get_access_token, list_sub_departments, to_bool
 
-MAX_DEPARTMENTS = 200
+MAX_DEPARTMENTS = 1000
 
 
 class GetDepartmentListTool(Tool):
@@ -22,9 +23,9 @@ class GetDepartmentListTool(Tool):
             token = get_access_token(self.runtime.credentials["app_key"], self.runtime.credentials["app_secret"])
             departments = list_sub_departments(token, dept_id)
             if recursive:
-                queue = [d["dept_id"] for d in departments if d.get("dept_id") is not None]
+                queue = deque(d["dept_id"] for d in departments if d.get("dept_id") is not None)
                 while queue:
-                    for sub in list_sub_departments(token, queue.pop(0)):
+                    for sub in list_sub_departments(token, queue.popleft()):
                         sub_id = sub.get("dept_id")
                         if sub_id is None:
                             continue

@@ -69,7 +69,4 @@ class SendWorkNotificationTool(Tool):
         yield self.create_json_message(
             {"task_id": task_id, "user_ids": user_ids, "message_type": message_type}
         )
-        yield self.create_text_message(
-            f"工作通知已提交（task_id={data.get('task_id')}），接收 {len(user_ids)} 人。"
-            "注意：同一员工一天内只能收到一条内容相同的通知；超频时钉钉仍返回成功但对方收不到。"
-        )
+        yield self.create_text_message(f"工作通知已提交（task_id={data.get('task_id')}），接收 {len(user_ids)} 人。")

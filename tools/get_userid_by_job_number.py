@@ -13,7 +13,7 @@ from _utils.dingtalk_client import (
     walk_departments,
 )
 
-MAX_USERS = 5000
+MAX_USERS = 20000
 
 
 def _walk_with_scope_fallback(token, roots, recursive):

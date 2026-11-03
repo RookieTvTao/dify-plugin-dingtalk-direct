@@ -52,8 +52,9 @@ All lookup tools share the same convention: `text` and the `user_ids` (or `dept_
 output variables are pure comma-separated ids, ready to be wired straight into the send
 tools' `user_ids` parameter; names, mobiles and failure reasons live in the `json` output.
 `Get Department Users` accepts comma-separated dept ids (wire the `dept_ids` output of
-`List Departments` straight in), can walk sub-departments recursively (capped at 100
-departments / 5000 users) and filter members by name substring **or exact job number**.
+`List Departments` straight in), can walk sub-departments recursively (capped at 1000
+departments / 20000 users - large trees take a while, scope `dept_id` when possible) and
+filter members by name substring **or exact job number**.
 `Get Userid by Job Number` searches the whole authorized tree by exact job number.
 `Query Send Result` turns a work-notification `task_id` into per-user delivery status and
 names invalid userids - the first tool to reach for when a send "succeeded" but nobody

@@ -15,7 +15,7 @@ from _utils.dingtalk_client import (
     walk_departments,
 )
 
-MAX_USERS = 5000
+MAX_USERS = 20000
 
 
 class GetDepartmentUsersTool(Tool):

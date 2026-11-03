@@ -9,6 +9,7 @@ import json
 import re
 import threading
 import time
+from collections import deque
 from typing import Any
 
 import requests
@@ -192,15 +193,15 @@ def list_sub_departments(token: str, dept_id: int) -> list[dict]:
     return data.get("result") or []
 
 
-def walk_departments(token: str, roots: list[int], include_sub: bool, max_departments: int = 100) -> list[int]:
+def walk_departments(token: str, roots: list[int], include_sub: bool, max_departments: int = 1000) -> list[int]:
     """Root departments plus (optionally) their whole sub-tree, BFS with dedupe."""
     departments = list(roots)
     if not include_sub:
         return departments
     visited = set(roots)
-    queue = list(roots)
+    queue = deque(roots)
     while queue:
-        for sub in list_sub_departments(token, queue.pop(0)):
+        for sub in list_sub_departments(token, queue.popleft()):
             sub_id = sub.get("dept_id")
             if sub_id is None or sub_id in visited:
                 continue
