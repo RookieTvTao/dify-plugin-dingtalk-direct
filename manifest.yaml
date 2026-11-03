@@ -1,4 +1,4 @@
-version: 0.0.11
+version: 0.0.12
 type: plugin
 author: rookietvtao
 name: dingtalk-direct
@@ -20,7 +20,7 @@ plugins:
   tools:
     - provider/dingtalk_direct.yaml
 meta:
-  version: 0.0.11
+  version: 0.0.12
   arch:
     - amd64
     - arm64

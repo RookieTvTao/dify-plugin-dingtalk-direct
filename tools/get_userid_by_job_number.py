@@ -12,6 +12,7 @@ from _utils.dingtalk_client import (
     get_authorized_scope_dept_ids,
     get_cached_job_index,
     put_job_index,
+    resolve_dept_path,
     to_bool,
     walk_departments,
 )
@@ -30,6 +31,7 @@ class GetUseridByJobNumberTool(Tool):
         if not dept_id_raw.isdigit():
             yield self.create_text_message("错误：dept_id 不是数字（根部门为 1）。")
             return
+        name_path = (tool_parameters.get("dept_name_path") or "").strip()
         recursive = to_bool(tool_parameters.get("recursive"))
         app_key = self.runtime.credentials["app_key"]
 
@@ -40,9 +42,14 @@ class GetUseridByJobNumberTool(Tool):
         total_users = 0
 
         try:
-            # Whole-scope searches ride a process-wide job-number index: the first call
-            # walks the tree once, later calls (within the TTL) answer instantly.
-            if dept_id_raw == "1" and recursive:
+            if name_path:
+                # A name path pins one subtree: resolve it and walk directly.
+                token = get_access_token(app_key, self.runtime.credentials["app_secret"])
+                departments = [resolve_dept_path(token, name_path)]
+                users = collect_users_parallel(token, walk_departments(token, departments, recursive, MAX_DEPARTMENTS), MAX_USERS)
+                total_users = len(users)
+                cached_index = build_job_index(users)
+            elif dept_id_raw == "1" and recursive:
                 cached_index = get_cached_job_index(app_key)
                 if cached_index is not None:
                     from_cache = True

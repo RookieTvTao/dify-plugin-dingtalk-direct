@@ -303,3 +303,41 @@ def matches_user(user: dict, keyword: str) -> bool:
         return True
     job = str(user.get("job_number") or "")
     return bool(job) and job == keyword
+
+
+def match_department_by_name(children: list[dict], segment: str) -> tuple[int | None, list[str]]:
+    """Match one path segment against direct children.
+
+    Returns (matched dept_id, candidate_names). Exact name match wins; otherwise a unique
+    substring match is accepted; ambiguity or no match returns None plus candidate names
+    (empty list means nothing matched at all).
+    """
+    seg = segment.strip()
+    exact = [c for c in children if (c.get("name") or "").strip() == seg]
+    if len(exact) == 1:
+        return exact[0]["dept_id"], []
+    pool = exact if exact else [c for c in children if seg in (c.get("name") or "")]
+    names = [c.get("name") or "" for c in pool]
+    if len(pool) == 1:
+        return pool[0]["dept_id"], []
+    return None, names
+
+
+def resolve_dept_path(token: str, path: str, root: int = 1) -> int:
+    """Resolve a '公司/部门/子部门' name path into a department id, one level per segment."""
+    segments = [s for s in (seg.strip() for seg in re.split(r"[/、]", path or "")) if s]
+    if not segments:
+        raise DingTalkError("dept_name_path 为空")
+    current = root
+    for i, seg in enumerate(segments):
+        children = list_sub_departments(token, current)
+        dept_id, candidates = match_department_by_name(children, seg)
+        if dept_id is None:
+            if candidates:
+                shown = "、".join(candidates[:5]) + ("等" if len(candidates) > 5 else "")
+                raise DingTalkError(
+                    f"第 {i + 1} 级「{seg}」匹配到 {len(candidates)} 个部门：{shown}；请使用完整名称或继续补充下一级"
+                )
+            raise DingTalkError(f"第 {i + 1} 级下没有名为「{seg}」的子部门，请检查名称")
+        current = dept_id
+    return current

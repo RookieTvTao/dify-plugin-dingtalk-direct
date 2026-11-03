@@ -9,6 +9,7 @@ from _utils.dingtalk_client import (  # noqa: E402
     build_robot_msg,
     build_work_msg,
     check_content_size,
+    match_department_by_name,
     matches_user,
     split_ids,
 )
@@ -91,6 +92,32 @@ class MatchesUserTest(unittest.TestCase):
 
     def test_job_number_numeric_type(self):
         self.assertTrue(matches_user({"job_number": 1000010002}, "1000010002"))
+
+
+class MatchDepartmentTest(unittest.TestCase):
+    CHILDREN = [
+        {"dept_id": 1, "name": "示例集团股份有限公司"},
+        {"dept_id": 2, "name": "示例集团（华东）有限公司"},
+        {"dept_id": 3, "name": "示例糖业（集团）有限公司"},
+    ]
+
+    def test_exact_unique(self):
+        dept_id, cands = match_department_by_name(self.CHILDREN, "示例集团股份有限公司")
+        self.assertEqual((dept_id, cands), (1, []))
+
+    def test_substring_unique(self):
+        dept_id, cands = match_department_by_name(self.CHILDREN, "糖业")
+        self.assertEqual((dept_id, cands), (3, []))
+
+    def test_ambiguous_returns_candidates(self):
+        dept_id, cands = match_department_by_name(self.CHILDREN, "示例集团")
+        self.assertIsNone(dept_id)
+        self.assertEqual(len(cands), 2)
+
+    def test_no_match(self):
+        dept_id, cands = match_department_by_name(self.CHILDREN, "不存在的部门")
+        self.assertIsNone(dept_id)
+        self.assertEqual(cands, [])
 
 
 if __name__ == "__main__":

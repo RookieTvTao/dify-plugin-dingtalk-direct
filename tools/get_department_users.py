@@ -10,31 +10,38 @@ from _utils.dingtalk_client import (
     get_authorized_scope_dept_ids,
     list_dept_users,
     matches_user,
+    resolve_dept_path,
     split_ids,
     to_bool,
     walk_departments,
 )
 
 MAX_USERS = 20000
+MAX_DEPARTMENTS = 5000
 
 
 class GetDepartmentUsersTool(Tool):
     def _invoke(self, tool_parameters: dict[str, Any]) -> Generator[ToolInvokeMessage]:
+        name_path = (tool_parameters.get("dept_name_path") or "").strip()
         dept_ids_in = split_ids(tool_parameters.get("dept_id", ""))
-        if not dept_ids_in or not all(d.isdigit() for d in dept_ids_in):
+        has_ids = bool(dept_ids_in) and all(d.isdigit() for d in dept_ids_in)
+        if not name_path and not has_ids:
             yield self.create_text_message(
-                "错误：dept_id 为空或含非数字项。支持单个部门 id 或半角逗号分隔多个"
-                "（根部门为 1；可直接连「获取部门列表」的 dept_ids 输出）。"
+                "错误：请提供 dept_name_path（如 示例集团/华东公司/信息技术部），"
+                "或 dept_id（单个/逗号分隔多个，根部门为 1）。"
             )
             return
-        roots = [int(d) for d in dept_ids_in]
         include_sub = to_bool(tool_parameters.get("include_sub_departments"))
         keyword = (tool_parameters.get("name_filter") or "").strip()
 
         try:
             token = get_access_token(self.runtime.credentials["app_key"], self.runtime.credentials["app_secret"])
+            if name_path:
+                roots = [resolve_dept_path(token, name_path)]
+            else:
+                roots = [int(d) for d in dept_ids_in]
             try:
-                departments = walk_departments(token, roots, include_sub)
+                departments = walk_departments(token, roots, include_sub, MAX_DEPARTMENTS)
                 scope_fallback = False
             except DingTalkError as e:
                 # Roots outside the app's address-book scope: retry from the authorized scope.
@@ -43,7 +50,7 @@ class GetDepartmentUsersTool(Tool):
                 scope_roots = get_authorized_scope_dept_ids(token)
                 if not scope_roots:
                     raise
-                departments = walk_departments(token, scope_roots, include_sub)
+                departments = walk_departments(token, scope_roots, include_sub, MAX_DEPARTMENTS)
                 scope_fallback = True
             users: dict[str, dict] = {}
             for d in departments:

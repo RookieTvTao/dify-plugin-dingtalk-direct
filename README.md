@@ -51,11 +51,15 @@ only (declared in `manifest.yaml` → `network.domains`).
 All lookup tools share the same convention: `text` and the `user_ids` (or `dept_ids`)
 output variables are pure comma-separated ids, ready to be wired straight into the send
 tools' `user_ids` parameter; names, mobiles and failure reasons live in the `json` output.
-`Get Department Users` accepts comma-separated dept ids (wire the `dept_ids` output of
-`List Departments` straight in), can walk sub-departments recursively (capped at 1000
-departments / 20000 users - large trees take a while, scope `dept_id` when possible) and
-filter members by name substring **or exact job number**.
-`Get Userid by Job Number` searches the whole authorized tree by exact job number.
+`Get Department Users` accepts either a **department name path** (`dept_name_path`, e.g.
+`"Company/Subsidiary/Department"`, resolved level by level into a dept id) or
+comma-separated dept ids, can walk sub-departments recursively (capped at 5000
+departments / 20000 users - scope to one subtree on large orgs) and filter members by
+name substring **or exact job number**.
+`Get Userid by Job Number` searches the whole authorized tree by exact job number (up to
+5000 departments / 20000 users, fetched in parallel) and caches a job-number index in
+process memory for 6 hours - the first whole-scope search takes a while on large orgs,
+subsequent ones answer instantly (`cached: true` in json).
 `Query Send Result` turns a work-notification `task_id` into per-user delivery status and
 names invalid userids - the first tool to reach for when a send "succeeded" but nobody
 received it.
