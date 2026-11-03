@@ -325,10 +325,11 @@ def match_department_by_name(children: list[dict], segment: str) -> tuple[int | 
 
 def resolve_dept_path(token: str, path: str, root: int = 1) -> int:
     """Resolve a '公司/部门/子部门' name path into a department id, one level per segment."""
-    segments = [s for s in (seg.strip() for seg in re.split(r"[/、]", path or "")) if s]
+    segments = [s for s in (seg.strip() for seg in re.split(r"[/、]", path or "")) if seg]
     if not segments:
         raise DingTalkError("dept_name_path 为空")
     current = root
+    current_name = "根部门"
     for i, seg in enumerate(segments):
         children = list_sub_departments(token, current)
         dept_id, candidates = match_department_by_name(children, seg)
@@ -338,6 +339,12 @@ def resolve_dept_path(token: str, path: str, root: int = 1) -> int:
                 raise DingTalkError(
                     f"第 {i + 1} 级「{seg}」匹配到 {len(candidates)} 个部门：{shown}；请使用完整名称或继续补充下一级"
                 )
-            raise DingTalkError(f"第 {i + 1} 级下没有名为「{seg}」的子部门，请检查名称")
+            preview = "、".join((c.get("name") or "") for c in children[:8]) + ("…" if len(children) > 8 else "")
+            raise DingTalkError(
+                f"第 {i + 1} 级：在「{current_name}」的下一级（共 {len(children)} 个部门）中没有匹配「{seg}」的子部门，"
+                f"其下一级包括：{preview}。提示：集团总部与各子公司常为平级节点（都挂在根部门下），"
+                "若目标在子公司内，请从子公司名称开始填路径。"
+            )
         current = dept_id
+        current_name = next((c.get("name") or "" for c in children if c.get("dept_id") == dept_id), current_name)
     return current
