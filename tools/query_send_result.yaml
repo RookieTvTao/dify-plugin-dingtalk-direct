@@ -1,0 +1,33 @@
+identity:
+  author: rookietvtao
+  name: query_send_result
+  label:
+    en_US: Query Send Result
+    zh_Hans: 查询发送结果
+description:
+  human:
+    en_US: 'Check what actually happened to a work notification: give the task_id returned by "Send Work Notification" to see per-user delivery status. Invalid userids are named in invalid_user_id_list.'
+    zh_Hans: 用「发送工作通知」返回的 task_id 查询实际送达情况：逐人发送状态、无效 userid 点名（invalid_user_id_list）——排查"显示成功但没人收到"的第一工具。
+  llm: Check the delivery result of a DingTalk work notification by its task_id.
+parameters:
+  - name: task_id
+    type: string
+    required: true
+    label:
+      en_US: Task ID
+      zh_Hans: 任务 ID
+    human_description:
+      en_US: 'The task_id returned when sending the work notification.'
+      zh_Hans: 发送工作通知时返回的 task_id。
+    llm_description: The task_id of the work notification to check.
+    form: llm
+output_schema:
+  output:
+    - name: invalid_user_ids
+      type: string
+      description:
+        en_US: 'Comma-separated userids that were invalid / not delivered; empty when none.'
+        zh_Hans: 未送达/无效的 userid（逗号分隔）；全部正常为空。
+extra:
+  python:
+    source: tools/query_send_result.py

@@ -3,18 +3,21 @@
 给钉钉**个人**发消息的 Dify 插件。官方钉钉插件只封装了群机器人 Webhook，而 Webhook 只能发群，
 本插件补上"发给个人"的能力，适合审批提醒、报告推送、告警私发等场景。
 
-## 五个工具
+## 八个工具
 
 | 工具 | 通道 | 前置条件 |
 |---|---|---|
 | 发送工作通知 | 接收者的「工作通知」会话 | 企业内部应用 AppKey/AppSecret + AgentId（消息通知权限默认已开通） |
 | 机器人单聊私发 | 机器人与个人的单聊 | 应用配置机器人并开启单聊，凭据填 RobotCode（机器人的 AppKey） |
 | 手机号换 userid | 查询 | 「根据手机号获取成员基本信息」权限（qyapi_get_member_by_mobile） |
-| 部门成员 userid | 查询 | 部门成员读权限（qyapi_get_department_member），可递归子部门、按姓名过滤 |
+| 部门成员 userid | 查询 | 部门成员读权限（qyapi_get_department_member），可递归子部门、按姓名/工号过滤 |
 | 获取部门列表 | 查询 | 部门信息读权限（qyapi_get_department_list），用于找 dept_id |
+| 按工号查 userid | 查询 | 部门信息+部门成员读权限，默认在授权范围整棵树按工号精确找人 |
+| 查用户部门 | 查询 | 成员详情读权限；手机号或 userid 进，所属部门 id 出 |
+| 查询发送结果 | 诊断 | 与工作通知同款 AgentId；task_id 进，送达状态出（无效 userid 点名） |
 
 查询类工具的 `user_ids`（或 `dept_ids`）/ `text` 输出都是**纯净的逗号分隔 id**，直接连到
-发送节点的 `user_ids` 即可；姓名、手机号、失败原因等明细在 `json` 输出里。
+发送节点的 `user_ids` 即可；姓名、工号、手机号、失败原因等明细在 `json` 输出里。
 
 ## 授权配置
 

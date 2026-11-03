@@ -36,12 +36,12 @@ parameters:
     type: string
     required: false
     label:
-      en_US: Name filter
-      zh_Hans: 姓名过滤
+      en_US: Name / job number filter
+      zh_Hans: 姓名或工号过滤
     human_description:
-      en_US: 'Optional substring match on member names, e.g. to pick one person out of a department.'
-      zh_Hans: 可选，按姓名包含匹配过滤成员，用于从部门里挑出某个人。
-    llm_description: Optional name substring to filter members by.
+      en_US: 'Optional filter: substring match on member names, or exact match on job number.'
+      zh_Hans: 可选，按姓名包含匹配或工号精确匹配过滤成员，用于从部门里挑出某个人。
+    llm_description: Optional filter matching member names (substring) or job number (exact).
     form: llm
 output_schema:
   output:

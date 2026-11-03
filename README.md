@@ -15,6 +15,9 @@ DingTalk group-robot plugin cannot do, because a group robot webhook can only po
 | Get Userid by Mobile | - (lookup) | Address-book read permission `qyapi_get_member_by_mobile` |
 | Get Department Users | - (lookup) | Address-book read permission `qyapi_get_department_member` |
 | List Departments | - (lookup) | Address-book read permission `qyapi_get_department_list` |
+| Get Userid by Job Number | - (lookup) | Department list + member read permissions (walks the authorized tree) |
+| Get User Departments | - (lookup) | Member detail read permission (mobile or userid in, dept ids out) |
+| Query Send Result | - (diagnostics) | Same AgentId as work notification; turns a task_id into delivery status |
 
 ## Setup
 
@@ -50,7 +53,11 @@ output variables are pure comma-separated ids, ready to be wired straight into t
 tools' `user_ids` parameter; names, mobiles and failure reasons live in the `json` output.
 `Get Department Users` accepts comma-separated dept ids (wire the `dept_ids` output of
 `List Departments` straight in), can walk sub-departments recursively (capped at 100
-departments / 5000 users) and filter members by name substring.
+departments / 5000 users) and filter members by name substring **or exact job number**.
+`Get Userid by Job Number` searches the whole authorized tree by exact job number.
+`Query Send Result` turns a work-notification `task_id` into per-user delivery status and
+names invalid userids - the first tool to reach for when a send "succeeded" but nobody
+received it.
 
 ## Field-tested
 

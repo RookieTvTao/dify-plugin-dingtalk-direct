@@ -25,6 +25,11 @@ class DingTalkError(Exception):
         self.code = code
 
 
+_ERRCODE_HINTS = {
+    50004: "多为应用「通讯录权限范围」未覆盖该部门：请管理员到 开发者后台→应用→权限管理→页面顶部「通讯录权限范围」添加该部门或改为全部员工",
+}
+
+
 _token_cache: dict[str, tuple[str, float]] = {}
 _token_lock = threading.Lock()
 
@@ -76,7 +81,11 @@ def post_old_api(path: str, token: str, payload: dict) -> dict:
         raise DingTalkError(f"钉钉返回非 JSON 响应（HTTP {resp.status_code}）：{resp.text[:300]}")
     errcode = data.get("errcode", 0)
     if errcode != 0:
-        raise DingTalkError(f"{data.get('errmsg', '未知错误')}（errcode {errcode}）", code=errcode)
+        msg = f"{data.get('errmsg', '未知错误')}（errcode {errcode}）"
+        hint = _ERRCODE_HINTS.get(errcode)
+        if hint:
+            msg = f"{msg}。{hint}"
+        raise DingTalkError(msg, code=errcode)
     return data
 
 
@@ -181,3 +190,39 @@ def list_sub_departments(token: str, dept_id: int) -> list[dict]:
         "/topapi/v2/department/listsub", token, {"dept_id": dept_id, "language": "zh_CN"}
     )
     return data.get("result") or []
+
+
+def walk_departments(token: str, roots: list[int], include_sub: bool, max_departments: int = 100) -> list[int]:
+    """Root departments plus (optionally) their whole sub-tree, BFS with dedupe."""
+    departments = list(roots)
+    if not include_sub:
+        return departments
+    visited = set(roots)
+    queue = list(roots)
+    while queue:
+        for sub in list_sub_departments(token, queue.pop(0)):
+            sub_id = sub.get("dept_id")
+            if sub_id is None or sub_id in visited:
+                continue
+            if len(departments) >= max_departments:
+                raise DingTalkError(f"子部门数量超过上限 {max_departments}，请缩小范围后分部门查询")
+            visited.add(sub_id)
+            departments.append(sub_id)
+            queue.append(sub_id)
+    return departments
+
+
+def get_user_detail(token: str, userid: str) -> dict:
+    """User detail via /topapi/v2/user/get (needs qyapi_get_member)."""
+    data = post_old_api("/topapi/v2/user/get", token, {"userid": userid, "language": "zh_CN"})
+    return data.get("result") or {}
+
+
+def matches_user(user: dict, keyword: str) -> bool:
+    """Keyword matches by name substring or exact job number."""
+    if not keyword:
+        return True
+    if keyword in (user.get("name") or ""):
+        return True
+    job = str(user.get("job_number") or "")
+    return bool(job) and job == keyword

@@ -8,13 +8,13 @@ from _utils.dingtalk_client import (
     DingTalkError,
     get_access_token,
     list_dept_users,
-    list_sub_departments,
+    matches_user,
     split_ids,
     to_bool,
+    walk_departments,
 )
 
 MAX_USERS = 5000
-MAX_DEPARTMENTS = 100
 
 
 class GetDepartmentUsersTool(Tool):
@@ -28,29 +28,11 @@ class GetDepartmentUsersTool(Tool):
             return
         roots = [int(d) for d in dept_ids_in]
         include_sub = to_bool(tool_parameters.get("include_sub_departments"))
-        name_filter = (tool_parameters.get("name_filter") or "").strip()
+        keyword = (tool_parameters.get("name_filter") or "").strip()
 
         try:
             token = get_access_token(self.runtime.credentials["app_key"], self.runtime.credentials["app_secret"])
-
-            departments = list(roots)
-            if include_sub:
-                visited = set(roots)
-                queue = list(roots)
-                while queue:
-                    for sub in list_sub_departments(token, queue.pop(0)):
-                        sub_id = sub.get("dept_id")
-                        if sub_id is None or sub_id in visited:
-                            continue
-                        if len(departments) >= MAX_DEPARTMENTS:
-                            yield self.create_text_message(
-                                f"错误：子部门数量超过上限 {MAX_DEPARTMENTS}，请缩小范围后分部门查询。"
-                            )
-                            return
-                        visited.add(sub_id)
-                        departments.append(sub_id)
-                        queue.append(sub_id)
-
+            departments = walk_departments(token, roots, include_sub)
             users: dict[str, dict] = {}
             for d in departments:
                 for u in list_dept_users(token, d):
@@ -67,7 +49,7 @@ class GetDepartmentUsersTool(Tool):
             yield self.create_text_message(f"获取部门成员失败：{e}")
             return
 
-        matched = [u for u in users.values() if not name_filter or name_filter in (u.get("name") or "")]
+        matched = [u for u in users.values() if matches_user(u, keyword)]
         user_ids = [u["userid"] for u in matched]
         joined = ",".join(user_ids)
         yield self.create_variable_message("user_ids", joined)
@@ -77,16 +59,21 @@ class GetDepartmentUsersTool(Tool):
                 "count": len(matched),
                 "departments_scanned": departments,
                 "users": [
-                    {"userid": u.get("userid"), "name": u.get("name"), "mobile": u.get("mobile") or ""}
+                    {
+                        "userid": u.get("userid"),
+                        "name": u.get("name"),
+                        "job_number": u.get("job_number") or "",
+                        "mobile": u.get("mobile") or "",
+                    }
                     for u in matched
                 ],
             }
         )
         if joined:
             yield self.create_text_message(joined)
-        elif name_filter:
+        elif keyword:
             yield self.create_text_message(
-                f"共扫描 {len(departments)} 个部门的 {len(users)} 名成员，没有姓名包含「{name_filter}」的成员。"
+                f"共扫描 {len(departments)} 个部门的 {len(users)} 名成员，没有姓名包含或工号等于「{keyword}」的成员。"
             )
         else:
             yield self.create_text_message(f"所查 {len(departments)} 个部门均没有直属成员（成员可能在子部门，试试开启递归）。")

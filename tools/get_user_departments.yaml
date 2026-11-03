@@ -1,0 +1,49 @@
+identity:
+  author: rookietvtao
+  name: get_user_departments
+  label:
+    en_US: Get User Departments
+    zh_Hans: 查用户部门
+description:
+  human:
+    en_US: 'Resolve a person to their department ids and user detail: give a mobile number or a userid. dept_ids output is pure comma-separated department ids; name/job number/title live in the json output.'
+    zh_Hans: 查一个人属于哪些部门：输入手机号（自动换 userid）或 userid，返回纯净的部门 id 列表；姓名、工号、职位等明细见 json 输出。可用来定位授权部门 id。
+  llm: Find which DingTalk departments a person belongs to, by mobile number or userid.
+parameters:
+  - name: mobile
+    type: string
+    required: false
+    label:
+      en_US: Mobile number
+      zh_Hans: 手机号
+    human_description:
+      en_US: 'Mobile number registered in the address book. Either mobile or user_id must be given.'
+      zh_Hans: 通讯录登记的手机号。mobile 与 user_id 至少填一个，填了 mobile 会自动换 userid。
+    llm_description: The person's mobile number (alternative to user_id).
+    form: llm
+  - name: user_id
+    type: string
+    required: false
+    label:
+      en_US: Userid
+      zh_Hans: userid
+    human_description:
+      en_US: 'DingTalk userid. Either mobile or user_id must be given.'
+      zh_Hans: 钉钉 userid。mobile 与 user_id 至少填一个。
+    llm_description: The person's DingTalk userid (alternative to mobile).
+    form: llm
+output_schema:
+  output:
+    - name: dept_ids
+      type: string
+      description:
+        en_US: 'Pure comma-separated department ids the user belongs to; empty when lookup fails.'
+        zh_Hans: 用户所属部门的纯净 id（逗号分隔）；查询失败为空。
+    - name: user_id
+      type: string
+      description:
+        en_US: The resolved DingTalk userid.
+        zh_Hans: 解析出的钉钉 userid。
+extra:
+  python:
+    source: tools/get_user_departments.py

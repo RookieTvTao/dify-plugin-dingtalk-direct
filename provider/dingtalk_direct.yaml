@@ -17,6 +17,9 @@ tools:
   - tools/get_userid_by_mobile.yaml
   - tools/get_department_users.yaml
   - tools/get_department_list.yaml
+  - tools/get_userid_by_job_number.yaml
+  - tools/get_user_departments.yaml
+  - tools/query_send_result.yaml
 extra:
   python:
     source: provider/dingtalk_direct.py

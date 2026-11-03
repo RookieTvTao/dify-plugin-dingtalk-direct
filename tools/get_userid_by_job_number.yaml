@@ -1,0 +1,61 @@
+identity:
+  author: rookietvtao
+  name: get_userid_by_job_number
+  label:
+    en_US: Get Userid by Job Number
+    zh_Hans: 按工号查 userid
+description:
+  human:
+    en_US: 'Find a member by exact job number inside a department tree (default: the whole authorized organization) and return the pure userid. Names and department ids are in the json output.'
+    zh_Hans: 按工号精确查找成员并返回纯净 userid，默认在授权范围的整棵部门树里找（也可指定某个部门起查）。姓名、部门明细见 json 输出。需部门信息与部门成员读权限。
+  llm: Resolve an employee job number to a DingTalk userid before sending direct messages.
+parameters:
+  - name: job_number
+    type: string
+    required: true
+    label:
+      en_US: Job number
+      zh_Hans: 工号
+    human_description:
+      en_US: 'The exact job number (员工工号), not the DingTalk userid.'
+      zh_Hans: 员工工号（精确匹配），注意不是钉钉 userid。
+    llm_description: The exact employee job number to look up.
+    form: llm
+  - name: dept_id
+    type: string
+    required: false
+    default: "1"
+    label:
+      en_US: Search from department
+      zh_Hans: 起查部门
+    human_description:
+      en_US: 'Department id to search from; defaults to 1 (root, whole authorized tree).'
+      zh_Hans: 从哪个部门起查，默认 1（根部门，即授权范围内全员）。
+    llm_description: Optional department id to scope the search (defaults to the root).
+    form: llm
+  - name: recursive
+    type: boolean
+    required: false
+    default: true
+    label:
+      en_US: Recursive
+      zh_Hans: 递归子部门
+    human_description:
+      en_US: 'Walk the whole sub-tree (capped at 100 departments / 5000 users).'
+      zh_Hans: 递归整棵子部门树（上限 100 个部门 / 5000 人）。
+    form: form
+output_schema:
+  output:
+    - name: user_ids
+      type: string
+      description:
+        en_US: 'Pure comma-separated userids matching the job number; empty when not found.'
+        zh_Hans: 匹配工号的纯净 userid（逗号分隔）；未找到为空。
+    - name: count
+      type: number
+      description:
+        en_US: Number of userids returned.
+        zh_Hans: 返回的 userid 数量。
+extra:
+  python:
+    source: tools/get_userid_by_job_number.py

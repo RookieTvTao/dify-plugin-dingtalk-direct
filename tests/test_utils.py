@@ -9,6 +9,7 @@ from _utils.dingtalk_client import (  # noqa: E402
     build_robot_msg,
     build_work_msg,
     check_content_size,
+    matches_user,
     split_ids,
 )
 
@@ -72,6 +73,24 @@ class ToBoolTest(unittest.TestCase):
         self.assertFalse(to_bool("0"))
         self.assertFalse(to_bool(None))
         self.assertFalse(to_bool(""))
+
+
+class MatchesUserTest(unittest.TestCase):
+    def test_empty_keyword_matches_all(self):
+        self.assertTrue(matches_user({"name": "张三"}, ""))
+        self.assertTrue(matches_user({}, ""))
+
+    def test_name_substring(self):
+        self.assertTrue(matches_user({"name": "王小陶"}, "小陶"))
+        self.assertFalse(matches_user({"name": "王小陶"}, "小陶1"))
+
+    def test_job_number_exact(self):
+        self.assertTrue(matches_user({"name": "x", "job_number": "1000010002"}, "1000010002"))
+        self.assertFalse(matches_user({"name": "x", "job_number": "1000010002"}, "202408030"))
+        self.assertFalse(matches_user({"name": "x"}, "1000010002"))
+
+    def test_job_number_numeric_type(self):
+        self.assertTrue(matches_user({"job_number": 1000010002}, "1000010002"))
 
 
 if __name__ == "__main__":
