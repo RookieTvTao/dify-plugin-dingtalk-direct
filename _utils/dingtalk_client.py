@@ -5,6 +5,7 @@ DingTalk has two API styles:
 - api.dingtalk.com: errors use HTTP status codes plus a body code/message.
 """
 
+import concurrent.futures
 import json
 import re
 import threading
@@ -235,6 +236,61 @@ def get_authorized_scope_dept_ids(token: str) -> list[int]:
             if isinstance(d, int) and d not in dept_ids:
                 dept_ids.append(d)
     return dept_ids
+
+
+def collect_users_parallel(token: str, departments: list[int], max_users: int = 20000, workers: int = 6) -> dict[str, dict]:
+    """Fetch user/list for many departments concurrently; dedupes by userid.
+
+    Retries once on errcode 90018 (per-app rate limit) with a short backoff.
+    """
+    users: dict[str, dict] = {}
+
+    def fetch(dept_id: int):
+        for attempt in (1, 2):
+            try:
+                return list_dept_users(token, dept_id)
+            except DingTalkError as e:
+                if e.code == 90018 and attempt == 1:
+                    time.sleep(1.0)
+                    continue
+                raise
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
+        for members in pool.map(fetch, departments):
+            for u in members:
+                uid = u.get("userid")
+                if uid and uid not in users:
+                    users[uid] = u
+            if len(users) > max_users:
+                raise DingTalkError(f"成员数量超过上限 {max_users}，请改用更小的部门范围。")
+    return users
+
+
+JOB_INDEX_TTL = 6 * 3600
+_job_index_cache: dict[str, tuple[float, dict[str, list[dict]]]] = {}
+_job_index_lock = threading.Lock()
+
+
+def build_job_index(users: dict[str, dict]) -> dict[str, list[dict]]:
+    index: dict[str, list[dict]] = {}
+    for u in users.values():
+        job = str(u.get("job_number") or "")
+        if job:
+            index.setdefault(job, []).append(u)
+    return index
+
+
+def get_cached_job_index(app_key: str) -> dict[str, list[dict]] | None:
+    with _job_index_lock:
+        cached = _job_index_cache.get(app_key)
+        if cached and cached[0] > time.monotonic():
+            return cached[1]
+    return None
+
+
+def put_job_index(app_key: str, index: dict[str, list[dict]]) -> None:
+    with _job_index_lock:
+        _job_index_cache[app_key] = (time.monotonic() + JOB_INDEX_TTL, index)
 
 
 def matches_user(user: dict, keyword: str) -> bool:

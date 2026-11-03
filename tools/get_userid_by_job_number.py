@@ -6,28 +6,18 @@ from dify_plugin.entities.tool import ToolInvokeMessage
 
 from _utils.dingtalk_client import (
     DingTalkError,
+    build_job_index,
+    collect_users_parallel,
     get_access_token,
     get_authorized_scope_dept_ids,
-    list_dept_users,
+    get_cached_job_index,
+    put_job_index,
     to_bool,
     walk_departments,
 )
 
 MAX_USERS = 20000
-
-
-def _walk_with_scope_fallback(token, roots, recursive):
-    """Walk from the given roots; if they are outside the app's address-book scope (50004),
-    fall back to the departments the scope actually covers."""
-    try:
-        return walk_departments(token, roots, recursive), False
-    except DingTalkError as e:
-        if e.code != 50004:
-            raise
-        scope_roots = get_authorized_scope_dept_ids(token)
-        if not scope_roots:
-            raise
-        return walk_departments(token, scope_roots, recursive), True
+MAX_DEPARTMENTS = 5000
 
 
 class GetUseridByJobNumberTool(Tool):
@@ -41,20 +31,57 @@ class GetUseridByJobNumberTool(Tool):
             yield self.create_text_message("错误：dept_id 不是数字（根部门为 1）。")
             return
         recursive = to_bool(tool_parameters.get("recursive"))
+        app_key = self.runtime.credentials["app_key"]
+
+        cached_index = None
+        from_cache = False
+        departments: list[int] = []
+        scope_fallback = False
+        total_users = 0
 
         try:
-            token = get_access_token(self.runtime.credentials["app_key"], self.runtime.credentials["app_secret"])
-            departments, scope_fallback = _walk_with_scope_fallback(token, [int(dept_id_raw)], recursive)
-            found: list[dict] = []
-            scanned = 0
-            for d in departments:
-                for u in list_dept_users(token, d):
-                    scanned += 1
-                    if str(u.get("job_number") or "") == job_number:
-                        found.append(u)
-                if scanned > MAX_USERS:
-                    yield self.create_text_message(f"错误：扫描成员超过上限 {MAX_USERS}，请改用更小的部门范围。")
-                    return
+            # Whole-scope searches ride a process-wide job-number index: the first call
+            # walks the tree once, later calls (within the TTL) answer instantly.
+            if dept_id_raw == "1" and recursive:
+                cached_index = get_cached_job_index(app_key)
+                if cached_index is not None:
+                    from_cache = True
+                if cached_index is None:
+                    token = get_access_token(app_key, self.runtime.credentials["app_secret"])
+                    try:
+                        departments = walk_departments(token, [1], True, MAX_DEPARTMENTS)
+                    except DingTalkError as e:
+                        if e.code != 50004:
+                            raise
+                        scope_roots = get_authorized_scope_dept_ids(token)
+                        if not scope_roots:
+                            raise
+                        departments = walk_departments(token, scope_roots, True, MAX_DEPARTMENTS)
+                        scope_fallback = True
+                    users = collect_users_parallel(token, departments, MAX_USERS)
+                    total_users = len(users)
+                    cached_index = build_job_index(users)
+                    put_job_index(app_key, cached_index)
+            else:
+                token = get_access_token(app_key, self.runtime.credentials["app_secret"])
+                try:
+                    departments = walk_departments(token, [int(dept_id_raw)], recursive, MAX_DEPARTMENTS)
+                except DingTalkError as e:
+                    if e.code != 50004:
+                        raise
+                    scope_roots = get_authorized_scope_dept_ids(token)
+                    if not scope_roots:
+                        raise
+                    departments = walk_departments(token, scope_roots, recursive, MAX_DEPARTMENTS)
+                    scope_fallback = True
+                users = collect_users_parallel(token, departments, MAX_USERS)
+                total_users = len(users)
+                cached_index = build_job_index(users)
+
+            if cached_index is None:
+                yield self.create_text_message("错误：未能建立工号索引，请稍后重试。")
+                return
+            found = cached_index.get(job_number, [])
         except DingTalkError as e:
             yield self.create_text_message(f"按工号查询失败：{e}")
             return
@@ -69,7 +96,10 @@ class GetUseridByJobNumberTool(Tool):
         yield self.create_json_message(
             {
                 "count": len(found),
+                "cached": from_cache,
                 "scope_fallback": scope_fallback,
+                "departments_scanned": departments,
+                "users_indexed": total_users or sum(len(v) for v in cached_index.values()),
                 "users": [
                     {
                         "userid": u.get("userid"),
@@ -82,10 +112,15 @@ class GetUseridByJobNumberTool(Tool):
             }
         )
         if joined:
-            note = "（根部门不在授权范围，已自动改从应用授权部门搜索）" if scope_fallback else ""
-            yield self.create_text_message(joined + note)
+            notes = []
+            if from_cache:
+                notes.append("命中工号索引缓存")
+            if scope_fallback:
+                notes.append("根部门不在授权范围，已自动改从应用授权部门搜索")
+            suffix = f"（{'；'.join(notes)}）" if notes else ""
+            yield self.create_text_message(joined + suffix)
         else:
             yield self.create_text_message(
-                f"在 {len(departments)} 个部门共 {scanned} 名成员中未找到工号为「{job_number}」的员工"
-                "（工号以企业通讯录登记的为准）。"
+                f"未找到工号为「{job_number}」的员工（工号以企业通讯录登记的为准；"
+                "若确认无误，可能是该员工不在应用通讯录权限范围内）。"
             )
