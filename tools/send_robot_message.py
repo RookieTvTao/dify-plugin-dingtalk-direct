@@ -53,6 +53,9 @@ class SendRobotMessageTool(Tool):
 
         invalid = data.get("invalidStaffIdList") or []
         flow_limited = data.get("flowControlledStaffIdList") or []
+        yield self.create_variable_message("process_query_key", data.get("processQueryKey") or "")
+        yield self.create_variable_message("user_ids", ",".join(user_ids))
+        yield self.create_variable_message("invalid_staff_ids", ",".join(invalid))
         yield self.create_json_message(
             {
                 "process_query_key": data.get("processQueryKey"),

@@ -218,6 +218,24 @@ def get_user_detail(token: str, userid: str) -> dict:
     return data.get("result") or {}
 
 
+def get_authorized_scope_dept_ids(token: str) -> list[int]:
+    """Departments the app's address-book permission scope covers, via /topapi/auth/scopes.
+
+    Returns [] when the scope is empty or the API gives nothing usable.
+    """
+    try:
+        data = post_old_api("/topapi/auth/scopes", token, {})
+    except DingTalkError:
+        return []
+    result = data.get("result") or {}
+    dept_ids: list[int] = []
+    for cond in result.get("conditions") or []:
+        for d in cond.get("dept_ids") or []:
+            if isinstance(d, int) and d not in dept_ids:
+                dept_ids.append(d)
+    return dept_ids
+
+
 def matches_user(user: dict, keyword: str) -> bool:
     """Keyword matches by name substring or exact job number."""
     if not keyword:

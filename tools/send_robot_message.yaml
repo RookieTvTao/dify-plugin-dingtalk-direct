@@ -63,6 +63,23 @@ parameters:
       zh_Hans: Markdown 消息的标题，文本类型忽略；留空时取内容第一行。
     llm_description: Optional title, used only when message type is markdown.
     form: llm
+output_schema:
+  output:
+    - name: process_query_key
+      type: string
+      description:
+        en_US: 'Message batch id returned by DingTalk for the robot DM.'
+        zh_Hans: 机器人单聊批次 id（processQueryKey）。
+    - name: user_ids
+      type: string
+      description:
+        en_US: 'The comma-separated userids the message was submitted to.'
+        zh_Hans: 本次提交发送的逗号分隔 userid。
+    - name: invalid_staff_ids
+      type: string
+      description:
+        en_US: 'Userids that were not delivered (not on robot chat / out of scope / invalid); empty when all delivered.'
+        zh_Hans: 未送达的 userid（逗号分隔）；全部送达为空。
 extra:
   python:
     source: tools/send_robot_message.py

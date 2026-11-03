@@ -63,8 +63,11 @@ class SendWorkNotificationTool(Tool):
             yield self.create_text_message(f"发送工作通知失败：{e}")
             return
 
+        task_id = data.get("task_id")
+        yield self.create_variable_message("task_id", str(task_id or ""))
+        yield self.create_variable_message("user_ids", ",".join(user_ids))
         yield self.create_json_message(
-            {"task_id": data.get("task_id"), "user_ids": user_ids, "message_type": message_type}
+            {"task_id": task_id, "user_ids": user_ids, "message_type": message_type}
         )
         yield self.create_text_message(
             f"工作通知已提交（task_id={data.get('task_id')}），接收 {len(user_ids)} 人。"

@@ -7,6 +7,7 @@ from dify_plugin.entities.tool import ToolInvokeMessage
 from _utils.dingtalk_client import (
     DingTalkError,
     get_access_token,
+    get_authorized_scope_dept_ids,
     list_dept_users,
     matches_user,
     split_ids,
@@ -32,7 +33,18 @@ class GetDepartmentUsersTool(Tool):
 
         try:
             token = get_access_token(self.runtime.credentials["app_key"], self.runtime.credentials["app_secret"])
-            departments = walk_departments(token, roots, include_sub)
+            try:
+                departments = walk_departments(token, roots, include_sub)
+                scope_fallback = False
+            except DingTalkError as e:
+                # Roots outside the app's address-book scope: retry from the authorized scope.
+                if e.code != 50004:
+                    raise
+                scope_roots = get_authorized_scope_dept_ids(token)
+                if not scope_roots:
+                    raise
+                departments = walk_departments(token, scope_roots, include_sub)
+                scope_fallback = True
             users: dict[str, dict] = {}
             for d in departments:
                 for u in list_dept_users(token, d):
@@ -57,6 +69,7 @@ class GetDepartmentUsersTool(Tool):
         yield self.create_json_message(
             {
                 "count": len(matched),
+                "scope_fallback": scope_fallback,
                 "departments_scanned": departments,
                 "users": [
                     {

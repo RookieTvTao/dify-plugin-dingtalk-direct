@@ -7,12 +7,27 @@ from dify_plugin.entities.tool import ToolInvokeMessage
 from _utils.dingtalk_client import (
     DingTalkError,
     get_access_token,
+    get_authorized_scope_dept_ids,
     list_dept_users,
     to_bool,
     walk_departments,
 )
 
 MAX_USERS = 5000
+
+
+def _walk_with_scope_fallback(token, roots, recursive):
+    """Walk from the given roots; if they are outside the app's address-book scope (50004),
+    fall back to the departments the scope actually covers."""
+    try:
+        return walk_departments(token, roots, recursive), False
+    except DingTalkError as e:
+        if e.code != 50004:
+            raise
+        scope_roots = get_authorized_scope_dept_ids(token)
+        if not scope_roots:
+            raise
+        return walk_departments(token, scope_roots, recursive), True
 
 
 class GetUseridByJobNumberTool(Tool):
@@ -29,7 +44,7 @@ class GetUseridByJobNumberTool(Tool):
 
         try:
             token = get_access_token(self.runtime.credentials["app_key"], self.runtime.credentials["app_secret"])
-            departments = walk_departments(token, [int(dept_id_raw)], recursive)
+            departments, scope_fallback = _walk_with_scope_fallback(token, [int(dept_id_raw)], recursive)
             found: list[dict] = []
             scanned = 0
             for d in departments:
@@ -54,6 +69,7 @@ class GetUseridByJobNumberTool(Tool):
         yield self.create_json_message(
             {
                 "count": len(found),
+                "scope_fallback": scope_fallback,
                 "users": [
                     {
                         "userid": u.get("userid"),
@@ -66,7 +82,8 @@ class GetUseridByJobNumberTool(Tool):
             }
         )
         if joined:
-            yield self.create_text_message(joined)
+            note = "（根部门不在授权范围，已自动改从应用授权部门搜索）" if scope_fallback else ""
+            yield self.create_text_message(joined + note)
         else:
             yield self.create_text_message(
                 f"在 {len(departments)} 个部门共 {scanned} 名成员中未找到工号为「{job_number}」的员工"
