@@ -33,19 +33,23 @@ class SearchUserByNameTool(Tool):
             yield self.create_text_message(f"按姓名搜索失败：{e}")
             return
 
-        users = data.get("users") or (data.get("result") or {}).get("users") or []
-        matched = [
-            {"userid": u.get("userid") or u.get("userId") or "", "name": u.get("name") or ""}
-            for u in users
-            if (u.get("userid") or u.get("userId"))
-        ]
-        joined = ",".join(u["userid"] for u in matched)
-        has_more = bool(data.get("hasMore") or (data.get("result") or {}).get("hasMore"))
+        # Verified live schema: {"hasMore": bool, "totalCount": int, "list": ["userid", ...]}.
+        # Keep an object-shape fallback in case the server grows a richer variant.
+        user_ids = [str(u) for u in (data.get("list") or []) if u]
+        if not user_ids:
+            for u in data.get("users") or (data.get("result") or {}).get("users") or []:
+                uid = u.get("userid") or u.get("userId")
+                if uid:
+                    user_ids.append(str(uid))
+        joined = ",".join(user_ids)
+        has_more = bool(data.get("hasMore"))
         yield self.create_variable_message("user_ids", joined)
-        yield self.create_variable_message("count", len(matched))
-        yield self.create_json_message({"count": len(matched), "has_more": has_more, "users": matched})
+        yield self.create_variable_message("count", len(user_ids))
+        yield self.create_json_message(
+            {"count": len(user_ids), "total_count": data.get("totalCount"), "has_more": has_more, "user_ids": user_ids}
+        )
         if joined:
-            note = f"（共 {len(matched)} 人，均按匹配度排序）" if len(matched) > 1 else ""
+            note = f"（共 {len(user_ids)} 人，按匹配度排序；姓名等明细可用「查用户部门」补查）" if len(user_ids) > 1 else ""
             yield self.create_text_message(joined + note)
         else:
             yield self.create_text_message(
