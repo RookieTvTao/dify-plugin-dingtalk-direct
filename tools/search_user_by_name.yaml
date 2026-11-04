@@ -1,0 +1,49 @@
+identity:
+  author: rookietvtao
+  name: search_user_by_name
+  label:
+    en_US: Search User by Name
+    zh_Hans: 按姓名搜索 userid
+description:
+  human:
+    en_US: 'Server-side keyword search over the whole authorized address book (name / pinyin / English name, fuzzy by default). One API call - no department traversal, works for any org size. Requires the qyapi_addresslist_search permission.'
+    zh_Hans: 服务端关键词搜索（匹配姓名/拼音/英文名，默认模糊）：一次调用覆盖授权范围全员，**不需要部门遍历**，集团规模再大也秒回。需应用开通「搜索企业通讯录」权限（qyapi_addresslist_search）。
+  llm: Search DingTalk users by name/pinyin keyword across the authorized address book and get pure comma-separated userids.
+parameters:
+  - name: query_word
+    type: string
+    required: true
+    label:
+      en_US: Keyword
+      zh_Hans: 关键词
+    human_description:
+      en_US: 'User name, name pinyin or English name, e.g. a full name or its pinyin.'
+      zh_Hans: 姓名、姓名拼音或英文名（如"张三"或"zhangsan"）；注意不匹配工号。
+    llm_description: The name/pinyin keyword to search users by.
+    form: llm
+  - name: full_match
+    type: boolean
+    required: false
+    default: false
+    label:
+      en_US: Exact match
+      zh_Hans: 精确匹配
+    human_description:
+      en_US: 'Match the name exactly instead of fuzzy matching.'
+      zh_Hans: 开启后精确匹配用户名称，默认模糊匹配。
+    form: form
+output_schema:
+  output:
+    - name: user_ids
+      type: string
+      description:
+        en_US: 'Pure comma-separated userids of matched users (best match first); empty when none.'
+        zh_Hans: 匹配到的纯净 userid（逗号分隔，按匹配度排序）；无匹配为空。
+    - name: count
+      type: number
+      description:
+        en_US: Number of userids returned.
+        zh_Hans: 返回的 userid 数量。
+extra:
+  python:
+    source: tools/search_user_by_name.py

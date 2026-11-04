@@ -20,6 +20,7 @@ tools:
   - tools/get_userid_by_job_number.yaml
   - tools/get_user_departments.yaml
   - tools/query_send_result.yaml
+  - tools/search_user_by_name.yaml
 extra:
   python:
     source: provider/dingtalk_direct.py

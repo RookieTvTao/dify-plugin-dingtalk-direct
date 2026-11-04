@@ -16,6 +16,7 @@ DingTalk group-robot plugin cannot do, because a group robot webhook can only po
 | Get Department Users | - (lookup) | Address-book read permission `qyapi_get_department_member` |
 | List Departments | - (lookup) | Address-book read permission `qyapi_get_department_list` |
 | Get Userid by Job Number | - (lookup) | Department list + member read permissions (walks the authorized tree) |
+| **Search User by Name** | - (lookup) | **Address-book search permission `qyapi_addresslist_search`** - server-side keyword search (name/pinyin), one call, no traversal |
 | Get User Departments | - (lookup) | Member detail read permission (mobile or userid in, dept ids out) |
 | Query Send Result | - (diagnostics) | Same AgentId as work notification; turns a task_id into delivery status |
 
